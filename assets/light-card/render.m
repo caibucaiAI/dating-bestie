@@ -1,0 +1,20 @@
+#import <AppKit/AppKit.h>
+NSColor*C(int h){return[NSColor colorWithSRGBRed:((h>>16)&255)/255. green:((h>>8)&255)/255. blue:(h&255)/255. alpha:1];}
+void T(NSString*s,double x,double y,double z,BOOL bold,int ink){NSMutableParagraphStyle*p=[NSMutableParagraphStyle new];p.lineSpacing=10;[s drawAtPoint:NSMakePoint(x,y) withAttributes:@{NSFontAttributeName:[NSFont fontWithName:bold?@"PingFangSC-Semibold":@"PingFangSC-Regular" size:z],NSForegroundColorAttributeName:C(ink),NSParagraphStyleAttributeName:p}];}
+void L(NSPoint a,NSPoint b,NSPoint c,NSPoint d,int hex,double width){NSBezierPath*p=[NSBezierPath bezierPath];[p moveToPoint:a];[p curveToPoint:d controlPoint1:b controlPoint2:c];[C(hex)setStroke];p.lineWidth=width;p.lineCapStyle=NSLineCapStyleRound;[p stroke];}
+void Spark(double x,double y){NSBezierPath*p=[NSBezierPath bezierPath];[p moveToPoint:NSMakePoint(x,y-12)];[p curveToPoint:NSMakePoint(x+10,y) controlPoint1:NSMakePoint(x+1,y-3) controlPoint2:NSMakePoint(x+3,y-1)];[p curveToPoint:NSMakePoint(x,y+12) controlPoint1:NSMakePoint(x+3,y+1) controlPoint2:NSMakePoint(x+1,y+3)];[p curveToPoint:NSMakePoint(x-10,y) controlPoint1:NSMakePoint(x-1,y+3) controlPoint2:NSMakePoint(x-3,y+1)];[p closePath];[C(0xF59AB3)setStroke];p.lineWidth=2;[p stroke];}
+int main(int argc,char**argv){@autoreleasepool{if(argc!=4){fprintf(stderr,"Usage: render content.json assets/caicai-star-lamp.png output.png\n");return 1;}NSDictionary*cfg=[NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfFile:@(argv[1])] options:0 error:nil];NSArray*pts=cfg[@"points"];if(pts.count!=3)return 2;
+NSBitmapImageRep*rep=[[NSBitmapImageRep alloc]initWithBitmapDataPlanes:NULL pixelsWide:1080 pixelsHigh:1440 bitsPerSample:8 samplesPerPixel:4 hasAlpha:YES isPlanar:NO colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:0 bitsPerPixel:0];[NSGraphicsContext saveGraphicsState];[NSGraphicsContext setCurrentContext:[NSGraphicsContext graphicsContextWithBitmapImageRep:rep]];NSAffineTransform*f=[NSAffineTransform transform];[f translateXBy:0 yBy:1440];[f scaleXBy:1 yBy:-1];[f concat];NSGraphicsContext*gc=[NSGraphicsContext currentContext];[NSGraphicsContext setCurrentContext:[NSGraphicsContext graphicsContextWithCGContext:gc.CGContext flipped:YES]];
+[C(0xffffff)setFill];NSRectFill(NSMakeRect(0,0,1080,1440));
+T(cfg[@"title"],88,120,76,YES,0x252525);L(NSMakePoint(92,227),NSMakePoint(180,236),NSMakePoint(280,223),NSMakePoint(396,229),0xF59AB3,6);T(cfg[@"subtitle"],92,269,30,NO,0x666666);
+// These curves and soft light belong to the layout; the character PNG is never edited.
+NSBezierPath*light=[NSBezierPath bezierPath];[light moveToPoint:NSMakePoint(263,613)];[light lineToPoint:NSMakePoint(452,419)];[light curveToPoint:NSMakePoint(438,943) controlPoint1:NSMakePoint(541,550) controlPoint2:NSMakePoint(513,790)];[light closePath];[[C(0xFFF5E9)colorWithAlphaComponent:.48]setFill];[light fill];
+L(NSMakePoint(272,609),NSMakePoint(344,597),NSMakePoint(365,458),NSMakePoint(421,447),0xF0B5C7,2.2);
+L(NSMakePoint(274,620),NSMakePoint(354,650),NSMakePoint(373,719),NSMakePoint(430,713),0xF0B5C7,2.2);
+L(NSMakePoint(270,632),NSMakePoint(191,782),NSMakePoint(149,927),NSMakePoint(233,1008),0xF0B5C7,2.2);
+NSImage*im=[[NSImage alloc]initWithContentsOfFile:@(argv[2])];[im drawInRect:NSMakeRect(23,365,470,470) fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1 respectFlipped:YES hints:@{NSImageHintInterpolation:@(NSImageInterpolationHigh)}];
+Spark(430,420);T(pts[0][@"title"],460,397,39,YES,0x252525);T(pts[0][@"detail"],460,467,31,NO,0x666666);
+Spark(439,687);T(pts[1][@"title"],470,665,39,YES,0x252525);T(pts[1][@"detail"],470,735,31,NO,0x666666);
+Spark(234,982);T(pts[2][@"title"],267,958,40,YES,0x252525);T(pts[2][@"detail"],267,1090,31,NO,0x666666);
+T(cfg[@"footer"],94,1310,29,NO,0x777777);T(cfg[@"signature"],899,1310,28,YES,0x252525);
+[NSGraphicsContext restoreGraphicsState];[[rep representationUsingType:NSBitmapImageFileTypePNG properties:@{}]writeToFile:@(argv[3]) atomically:YES];}}
